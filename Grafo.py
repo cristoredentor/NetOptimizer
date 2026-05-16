@@ -40,7 +40,6 @@ class MinHeap:
             indiceActual = indicePadre
 
     def eliminaMin(self):
-
         if self.isEmpty():
             return None
 
@@ -85,35 +84,39 @@ class MinHeap:
 class Grafo:
 
     def __init__(self):
-        self.grafo = {}
+        self.origen = {}
 
     def inserta(self, v1, v2, peso):
 
-        if v1 not in self.grafo:
-            self.grafo[v1] = {}
+        if v1 not in self.origen:
+            self.origen[v1] = {}
 
-        if v2 not in self.grafo:
-            self.grafo[v2] = {}
+        if v2 not in self.origen:
+            self.origen[v2] = {}
 
-        self.grafo[v1][v2] = peso
+        self.origen[v1][v2] = peso # peso es un arreglo cuyo primer elemento va a ser latencia, el segundo ancho de banda y el tercero costo
 
-    def prim(self, inicio):
+
+    def prim_latencia(self, v0):
 
         padre = {} #Diccionario con los padres de cada nodo
         llave = {} #Diccionario que guarda el valor de un nodo con respecto a otro
         visitado = {} #Nos dice que nodos hemos visitado
 
-        for nodo in self.grafo:
+        for nodo in self.origen:
 
             padre[nodo] = None
             llave[nodo] = np.inf
             visitado[nodo] = False
 
-        llave[inicio] = 0
+        llave[v0] = 0
+
+        if v0 not in self.origen:
+            raise KeyError(f"El nodo inicial {v0} no existe en el grafo")
 
         heap = MinHeap()
 
-        heap.insertaElem(NodoHeap(inicio, 0))
+        heap.insertaElem(NodoHeap(v0, 0))
 
         while not heap.isEmpty():
 
@@ -121,20 +124,19 @@ class Grafo:
 
             u = actual.nodo
 
-            if visitado[u]:
-                continue
+
 
             visitado[u] = True
 
-            for vecino, peso in self.grafo[u].items():
+            for vecino, peso in self.origen[u].items():
 
-                if not visitado[vecino] and peso < llave[vecino]:
+                if not visitado[vecino] and peso["latencia"] < llave[vecino]:
 
-                    llave[vecino] = peso
+                    llave[vecino] = peso["latencia"]
                     padre[vecino] = u
 
                     heap.insertaElem(
-                        NodoHeap(vecino, peso)
+                        NodoHeap(vecino, peso["latencia"])
                     )
 
         return padre, llave
@@ -144,11 +146,11 @@ class Grafo:
         "Método que regresa los elementos de un grafo con el método de Depth First Search"
         
         visitados = {}
-        for v in self.grafo:
+        for v in self.origen:
             visitados[v] = False
         lista = []
 
-        for v in self.grafo:
+        for v in self.origen:
             if not visitados[v]:
                 self.__DFS(v, lista, visitados)
 
@@ -159,7 +161,7 @@ class Grafo:
         visitados[actual] = True
         lista.append(actual)
 
-        for hijo in self.grafo[actual]:
+        for hijo in self.origen[actual]:
 
             if not visitados[hijo]:
                 self.__DFS(hijo, lista, visitados)
@@ -168,12 +170,12 @@ class Grafo:
         "Método que regresa los elementos de un grafo con el método de Breath First Search"
         visitados = {}
 
-        for v in self.grafo:
+        for v in self.origen:
             visitados[v] = False
 
         lista = []
 
-        for v in self.grafo:
+        for v in self.origen:
 
             if not visitados[v]:
                 self.__BFS(v, lista, visitados)
@@ -193,7 +195,7 @@ class Grafo:
 
             lista.append(actual)
 
-            for hijo in self.grafo[actual]:
+            for hijo in self.origen[actual]:
 
                 if not visitados[hijo]:
 
@@ -205,7 +207,7 @@ class Grafo:
         llave = {}
         visitado = {}
 
-        for nodo in self.grafo:
+        for nodo in self.origen:
 
             padre[nodo] = None
             llave[nodo] = np.inf
@@ -230,7 +232,7 @@ class Grafo:
 
             visitado[u] = True
 
-            for vecino, peso in self.grafo[u].items():
+            for vecino, peso in self.origen[u].items():
 
                 if (
                     not visitado[vecino]
