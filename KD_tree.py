@@ -19,7 +19,6 @@ class nodoKd:
         self.distancia = distancia
     
     #getters 
-    
     def getValor(self):
         return self.value
     

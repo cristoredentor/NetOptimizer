@@ -1,0 +1,13 @@
+id,tipo,nombre,latitud,longitud
+1,SERVER,Datacenter Norte,19.5100,-99.1200
+2,SERVER,Datacenter Sur,19.3200,-99.1200
+3,SERVER,Datacenter Oriente,19.4400,-99.0300
+4,POP,Nodo Satélite,19.5500,-99.0200
+5,POP,Nodo Ecatepec,19.5800,-99.0500
+6,POP,Nodo Tlalnepantla,19.5400,-99.2000
+7,POP,Nodo Naucalpan,19.4800,-99.2300
+8,POP,Nodo Nezahualcóyotl,19.4100,-98.9900
+9,POP,Nodo Iztapalapa,19.3600,-99.0700
+10,USUARIO,Zona Insurgentes,19.4000,-99.1700
+11,USUARIO,Zona Pedregal,19.3300,-99.1900
+12,USUARIO,Zona Xochimilco,19.2600,-99.1000
