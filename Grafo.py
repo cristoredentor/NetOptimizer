@@ -85,8 +85,11 @@ class Grafo:
 
     def __init__(self):
         self.origen = {}
+        
+    def getOrigen(self):
+        return self.origen
 
-    def inserta(self, v1, v2, peso):
+    def inserta_no_dirigido(self, v1, v2, peso):
 
         if v1 not in self.origen:
             self.origen[v1] = {}
@@ -95,7 +98,7 @@ class Grafo:
             self.origen[v2] = {}
 
         self.origen[v1][v2] = peso # peso es un arreglo cuyo primer elemento va a ser latencia, el segundo ancho de banda y el tercero costo
-
+        self.origen[v2][v1] = peso
 
     def prim_latencia(self, v0):
 
@@ -123,7 +126,9 @@ class Grafo:
             actual = heap.eliminaMin()
 
             u = actual.nodo
-
+            
+            if visitado[u]: 
+                continue
 
 
             visitado[u] = True
