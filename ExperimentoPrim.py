@@ -1,9 +1,6 @@
 import Grafo
 import pandas as pd
 
-
-grafo = Grafo.Grafo()
-
 df_e = pd.read_csv("datos/enlaces.csv")
 df_n = pd.read_csv("datos/nodos.csv")
 
@@ -11,19 +8,12 @@ def insertaNodos():
 
     nodos = []
     for _, fila_n in df_n.iterrows():
-        for _, fila_e  in df_e.iterrows():
+        tipo = str(fila_n["tipo"])
+        latitud = float(fila_n["latitud"])
+        longitud = float(fila_n["longitud"])
+        id_nodo = int(fila_n["id"])
 
-            tipo = str(fila_n["tipo"])
-            latitud = float(fila_n["latitud"])
-            longitud = float(fila_n["longitud"])
-            id = int(fila_n["id"])
-            if(id == int(fila_e["origen"])):
-                latencia = (int(fila_e["destino"]), fila_e["latencia_ms"])
-                
-
-            nodos.append(
-                (tipo, latitud, longitud, id, latencia)
-            )
+        nodos.append((tipo, latitud, longitud, id_nodo))
 
     return nodos
     
@@ -37,10 +27,14 @@ def insertaElementos(grafo):
             "ancho_banda": int(fila["ancho_banda_gbps"]),
             "costo": int(fila["costo_km"])
         }
-        # Grafo.inserta_no_dirigido ya agrega ambas direcciones,
-        # por lo que solo necesitamos llamarlo una vez.
         grafo.inserta_no_dirigido(origen, destino, peso)
     return grafo
+
+
+def crea_grafo():
+    """Crea un grafo no dirigido con los enlaces cargados desde el CSV."""
+    grafo = Grafo.Grafo()
+    return insertaElementos(grafo)
 
 ## Comparaciones
 def comparaciones(elemento_a_comparar, grafo):
@@ -96,7 +90,7 @@ def conexiones_con_pos(posiciones):
 
 def referencias_despues_prim(grafo):
     """Devuelve conexiones (padre, hijo) excluyendo la raíz"""
-    padre, _ = grafo.prim_latencia(1)
+    padre, _ = grafo.prim_costo_km(1)
     nuevas_referencias = []
     for hijo, padre_nodo in padre.items():
         if padre_nodo is not None:  
@@ -104,7 +98,12 @@ def referencias_despues_prim(grafo):
     return nuevas_referencias
 
 
+def referencias_despues_prim_combinado(grafo):
+    """Devuelve conexiones (padre, hijo) excluyendo la raíz"""
+    padre, _ = grafo.prim_combinado(1)
+    nuevas_referencias = []
+    for hijo, padre_nodo in padre.items():
+        if padre_nodo is not None:  
+            nuevas_referencias.append((padre_nodo, hijo))
+    return nuevas_referencias
 
-insertaElementos(grafo)
-padre, llave = grafo.prim_latencia(1)
-print(padre)
