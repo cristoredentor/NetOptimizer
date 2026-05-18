@@ -107,3 +107,10 @@ def referencias_despues_prim_combinado(grafo):
             nuevas_referencias.append((padre_nodo, hijo))
     return nuevas_referencias
 
+grafo = Grafo.Grafo()
+insertaElementos(grafo)
+padre, llaves= grafo.prim_costo_km(1)
+
+print(grafo.getOrigen())
+
+print(padre)
