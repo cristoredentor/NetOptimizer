@@ -386,6 +386,7 @@ class Grafo:
                     visitados[hijo] = True
                     cola.append(hijo)
                     
+    
     def Dijkstra(self, v0):
         padre = {}
         llave = {}
@@ -421,10 +422,10 @@ class Grafo:
                 if (
                     not visitado[vecino]
                     and
-                    llave[u] + peso < llave[vecino]
+                    llave[u] + peso["costo"] < llave[vecino]
                 ):
 
-                    llave[vecino] = llave[u] + peso
+                    llave[vecino] = llave[u] + peso["costo"]
 
                     padre[vecino] = u
 
@@ -433,4 +434,3 @@ class Grafo:
                     )
 
         return padre, llave
-    
