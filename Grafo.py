@@ -83,7 +83,6 @@ class MinHeap:
 
             indice = menor
 
-
 class MaxHeap:
 
     def __init__(self):
@@ -93,36 +92,49 @@ class MaxHeap:
         return len(self.elementos) == 0
 
     def insertaElem(self, dato):
+
         self.elementos.append(dato)
+
         indiceActual = len(self.elementos) - 1
 
+        # Heapify up
         while indiceActual > 0:
+
             indicePadre = (indiceActual - 1) // 2
 
             if self.elementos[indicePadre] > self.elementos[indiceActual]:
                 break
 
-            self.elementos[indicePadre], self.elementos[indiceActual] = self.elementos[indiceActual], self.elementos[indicePadre]
+            self.elementos[indicePadre], self.elementos[indiceActual] = \
+                self.elementos[indiceActual], self.elementos[indicePadre]
+
             indiceActual = indicePadre
 
     def eliminaMax(self):
+
         if self.isEmpty():
             return None
 
         maximo = self.elementos[0]
+
         ultimo = self.elementos.pop()
 
         if not self.isEmpty():
+
             self.elementos[0] = ultimo
+
             self.__heapifyDown(0)
 
         return maximo
 
     def __heapifyDown(self, indice):
+
         n = len(self.elementos)
 
         while True:
+
             mayor = indice
+
             izq = 2 * indice + 1
             der = 2 * indice + 2
 
@@ -135,7 +147,9 @@ class MaxHeap:
             if mayor == indice:
                 break
 
-            self.elementos[indice], self.elementos[mayor] = self.elementos[mayor], self.elementos[indice]
+            self.elementos[indice], self.elementos[mayor] = \
+                self.elementos[mayor], self.elementos[indice]
+
             indice = mayor
 
 
@@ -143,8 +157,20 @@ class Grafo:
 
     def __init__(self):
         self.origen = {}
+        
+        # Estadísticas que van a usarse para normalizar los datos cuando se usen todos los criterios
         self._stats = None
         
+        #Para guardar los datos mínimos de cada categoria y acceder a ellos rapidamente
+        self.bwMinHeap = MinHeap()
+        self.bwMaxHeap = MaxHeap()
+
+        self.latMinHeap = MinHeap()
+        self.latMaxHeap = MaxHeap()
+
+        self.costoMinHeap = MinHeap()
+        self.costoMaxHeap = MaxHeap()
+                
     def getOrigen(self):
         return self.origen
 
@@ -158,6 +184,37 @@ class Grafo:
 
         self.origen[v1][v2] = peso # peso es un arreglo cuyo primer elemento va a ser latencia, el segundo ancho de banda y el tercero costo
         self.origen[v2][v1] = peso
+        
+        bw_inv = 1 / max(
+        peso["ancho_banda"],
+        0.001
+        )
+
+        lat = peso["latencia"]
+        costo = peso["costo"]
+
+        self.bwMinHeap.insertaElem(
+            NodoHeap(None, bw_inv)
+        )
+
+        self.bwMaxHeap.insertaElem(
+            NodoHeap(None, bw_inv)
+        )
+
+        self.latMinHeap.insertaElem(
+            NodoHeap(None, lat)
+        )
+
+        self.latMaxHeap.insertaElem(
+            NodoHeap(None, lat)
+        )
+        self.costoMinHeap.insertaElem(
+            NodoHeap(None, costo)
+        )
+
+        self.costoMaxHeap.insertaElem(
+            NodoHeap(None, costo)
+        )
     
     def prim_costo_km(self, v0):
 
@@ -211,15 +268,15 @@ class Grafo:
             raise KeyError(f"El nodo inicial {v0} no existe en el grafo")
 
         padre = {}
-        llave = {}
+        costo = {}
         visitado = {}
 
         for nodo in self.origen:
             padre[nodo] = None
-            llave[nodo] = np.inf
+            costo[nodo] = np.inf
             visitado[nodo] = False
 
-        llave[v0] = 0
+        costo[v0] = 0
 
         heap = MinHeap()
         heap.insertaElem(NodoHeap(v0, 0))
@@ -229,7 +286,7 @@ class Grafo:
             actual = heap.eliminaMin()
             u = actual.nodo
 
-            if actual.costo > llave[u]:
+            if actual.costo > costo[u]:
                 continue
 
             if visitado[u]:
@@ -246,16 +303,16 @@ class Grafo:
 
                 costo_real = distancia_arista * peso["costo"]
 
-                if not visitado[vecino] and costo_real < llave[vecino]:
+                if not visitado[vecino] and costo_real < costo[vecino]:
 
-                    llave[vecino] = costo_real
+                    costo[vecino] = costo_real
                     padre[vecino] = u
 
                     heap.insertaElem(
                         NodoHeap(vecino, costo_real)
                     )
 
-        return padre, llave
+        return padre, costo
     
     def precalcular_pesos_combinados(self):
 
@@ -324,12 +381,23 @@ class Grafo:
                 costo_vals.append(arista["costo"])
         
         self._stats = {
-            'bw_inv_min': min(bw_inv_vals),
-            'bw_inv_max': max(bw_inv_vals),
-            'lat_min': min(lat_vals),
-            'lat_max': max(lat_vals),
-            'costo_min': min(costo_vals),
-            'costo_max': max(costo_vals)
+             'bw_inv_min':
+            self.bwMinHeap.elementos[0].costo,
+
+            'bw_inv_max':
+                self.bwMaxHeap.elementos[0].costo,
+
+            'lat_min':
+                self.latMinHeap.elementos[0].costo,
+
+            'lat_max':
+                self.latMaxHeap.elementos[0].costo,
+
+            'costo_min':
+                self.costoMinHeap.elementos[0].costo,
+
+            'costo_max':
+                self.costoMaxHeap.elementos[0].costo
         }
     
     
@@ -429,8 +497,6 @@ class Grafo:
         return padre, llave
     
                 
-        
-        
     def normalizar(valores):
         min_val = min(valores)
         max_val = max(valores)
