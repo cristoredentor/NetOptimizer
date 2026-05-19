@@ -1,6 +1,7 @@
 import numpy as np
 # Método alternativo: instalar e importar en una celda
 from collections import deque
+from FuncionesAux import distancia_km
 
 class NodoHeap:
 
@@ -10,6 +11,9 @@ class NodoHeap:
 
     def __lt__(self, otro):
         return self.costo < otro.costo
+
+    def __gt__(self, otro):
+        return self.costo > otro.costo
 
 class MinHeap:
 
@@ -80,6 +84,61 @@ class MinHeap:
             indice = menor
 
 
+class MaxHeap:
+
+    def __init__(self):
+        self.elementos = []
+
+    def isEmpty(self):
+        return len(self.elementos) == 0
+
+    def insertaElem(self, dato):
+        self.elementos.append(dato)
+        indiceActual = len(self.elementos) - 1
+
+        while indiceActual > 0:
+            indicePadre = (indiceActual - 1) // 2
+
+            if self.elementos[indicePadre] > self.elementos[indiceActual]:
+                break
+
+            self.elementos[indicePadre], self.elementos[indiceActual] = self.elementos[indiceActual], self.elementos[indicePadre]
+            indiceActual = indicePadre
+
+    def eliminaMax(self):
+        if self.isEmpty():
+            return None
+
+        maximo = self.elementos[0]
+        ultimo = self.elementos.pop()
+
+        if not self.isEmpty():
+            self.elementos[0] = ultimo
+            self.__heapifyDown(0)
+
+        return maximo
+
+    def __heapifyDown(self, indice):
+        n = len(self.elementos)
+
+        while True:
+            mayor = indice
+            izq = 2 * indice + 1
+            der = 2 * indice + 2
+
+            if izq < n and self.elementos[izq] > self.elementos[mayor]:
+                mayor = izq
+
+            if der < n and self.elementos[der] > self.elementos[mayor]:
+                mayor = der
+
+            if mayor == indice:
+                break
+
+            self.elementos[indice], self.elementos[mayor] = self.elementos[mayor], self.elementos[indice]
+            indice = mayor
+
+
 class Grafo:
 
     def __init__(self):
@@ -142,6 +201,58 @@ class Grafo:
 
                     heap.insertaElem(
                         NodoHeap(vecino, peso["costo"])
+                    )
+
+        return padre, llave
+    
+    def prim_costo_real(self, v0, posiciones):
+
+        if v0 not in self.origen:
+            raise KeyError(f"El nodo inicial {v0} no existe en el grafo")
+
+        padre = {}
+        llave = {}
+        visitado = {}
+
+        for nodo in self.origen:
+            padre[nodo] = None
+            llave[nodo] = np.inf
+            visitado[nodo] = False
+
+        llave[v0] = 0
+
+        heap = MinHeap()
+        heap.insertaElem(NodoHeap(v0, 0))
+
+        while not heap.isEmpty():
+
+            actual = heap.eliminaMin()
+            u = actual.nodo
+
+            if actual.costo > llave[u]:
+                continue
+
+            if visitado[u]:
+                continue
+
+            visitado[u] = True
+
+            for vecino, peso in self.origen[u].items():
+
+                distancia_arista = distancia_km(
+                    posiciones[u],
+                    posiciones[vecino]
+                )
+
+                costo_real = distancia_arista * peso["costo"]
+
+                if not visitado[vecino] and costo_real < llave[vecino]:
+
+                    llave[vecino] = costo_real
+                    padre[vecino] = u
+
+                    heap.insertaElem(
+                        NodoHeap(vecino, costo_real)
                     )
 
         return padre, llave
@@ -434,3 +545,46 @@ class Grafo:
                     )
 
         return padre, llave
+    
+    def dijkstra_max_ancho_banda(self, v0):
+
+        if v0 not in self.origen:
+            raise KeyError(f"El nodo inicial {v0} no existe en el grafo")
+
+        padre = {}
+        ancho = {}
+        visitado = {}
+
+        for nodo in self.origen:
+            padre[nodo] = None
+            ancho[nodo] = -np.inf
+            visitado[nodo] = False
+
+        ancho[v0] = np.inf
+
+        heap = MaxHeap()
+        heap.insertaElem(NodoHeap(v0, ancho[v0]))
+
+        while not heap.isEmpty():
+
+            actual = heap.eliminaMax()
+            u = actual.nodo
+
+            if visitado[u]:
+                continue
+
+            visitado[u] = True
+
+            for vecino, peso in self.origen[u].items():
+
+                ancho_arista = peso["ancho_banda"]
+                nuevo_ancho = min(ancho[u], ancho_arista)
+
+                if nuevo_ancho > ancho[vecino]:
+
+                    ancho[vecino] = nuevo_ancho
+                    padre[vecino] = u
+
+                    heap.insertaElem(NodoHeap(vecino, nuevo_ancho))
+
+        return padre, ancho
